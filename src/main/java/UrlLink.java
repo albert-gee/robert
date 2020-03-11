@@ -1,12 +1,12 @@
-import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.HashSet;
 
@@ -21,14 +21,14 @@ public class UrlLink implements Comparable<UrlLink> {
     // Found url address
     private String url;
 
+    // Host of website
+    private String host;
+
     // Where URL was found
     private UrlLink parent;
 
     // URL connection
     private HttpURLConnection connection;
-
-    // Connection to web page
-    private Connection.Response connectionResponse;
 
     // HTTP response code
     private int httpStatusCode;
@@ -40,17 +40,27 @@ public class UrlLink implements Comparable<UrlLink> {
     private Document document;
 
     public UrlLink(String url, UrlLink foundOn, String host) throws IOException {
+        setHost(host);
         setUrl(url, host);
         setParent(foundOn);
 
         if (!this.isMailOrTel()) {
             setConnection();
             setHttpStatusCode();
-            setConnectionResponse();
-            setDocument();
+
+            if (this.isInternal(host) && this.isWebPage()) {
+                setDocument();
+            }
         }
 
         setAnalyze();
+    }
+
+    /**
+     * @return host
+     */
+    public String getHost() {
+        return this.host;
     }
 
     /**
@@ -75,13 +85,6 @@ public class UrlLink implements Comparable<UrlLink> {
     }
 
     /**
-     * @return connection response to current URL
-     */
-    public Connection.Response getConnectionResponse() {
-        return this.connectionResponse;
-    }
-
-    /**
      * @return HTTP status code
      */
     public int getHttpStatusCode() {
@@ -100,6 +103,18 @@ public class UrlLink implements Comparable<UrlLink> {
      */
     public Document getDocument() {
         return this.document;
+    }
+
+    /**
+     * Sets host
+     * @param host
+     */
+    private void setHost(String host) {
+        if (host != null && host.trim().length() > 0) {
+            this.host = host;
+        } else {
+            throw new IllegalArgumentException("Provided host is empty");
+        }
     }
 
     /**
@@ -178,29 +193,26 @@ public class UrlLink implements Comparable<UrlLink> {
     }
 
     /**
-     * Connects to URL
-     * @throws IOException if connection failed
-     */
-    private void setConnectionResponse() throws IOException {
-
-        try {
-            if (this.connectionResponse == null && this.isValid() && this.isWebPage()) {
-                this.connectionResponse = Jsoup.connect(this.getUrl())
-                        .userAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.21 (KHTML, like Gecko) Chrome/19.0.1042.0 Safari/535.21")
-                        .timeout(10 * 1000)
-                        .execute();
-            }
-        } catch (SocketTimeoutException ex) {
-            this.connectionResponse = null;
-        }
-    }
-
-    /**
      * Parses HTML of web page
      */
     private void setDocument() throws IOException {
-        if (this.connectionResponse != null) {
-            this.document = this.connectionResponse.parse();
+        if (this.getConnection() != null) {
+
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(this.getConnection().getInputStream())
+            );
+
+            String line;
+            StringBuilder sb = new StringBuilder();
+
+            while ((line = in.readLine()) != null) {
+                sb.append(line);
+                sb.append(System.lineSeparator());
+            };
+            in.close();
+
+            this.document = Jsoup.parse(sb.toString());
+
         }
     }
 
@@ -212,7 +224,7 @@ public class UrlLink implements Comparable<UrlLink> {
         String parent = (this.getParent() == null) ? "" : " found on " + this.getParent().toString();
         String result;
 
-        if (this.getConnectionResponse() != null && this.getConnectionResponse().contentType().contains("text/html")) {
+        if (this.getConnection() != null && this.isInternal(this.getHost()) && this.isWebPage()) {
 
             String title = this.getDocument().title();
             int numberOfH1 = this.getDocument().select("h1").size();
