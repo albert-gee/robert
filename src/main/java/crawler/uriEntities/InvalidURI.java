@@ -29,7 +29,7 @@ public class InvalidURI implements URI {
 
     @Override
     public void setUri(String uriString) {
-        this.URI = URI;
+        this.URI = uriString;
     }
 
     @Override
@@ -46,4 +46,7 @@ public class InvalidURI implements URI {
     public int compareTo(URI urlLink) {
         return this.getUri().compareTo(urlLink.getUri());
     }
+
+    @Override
+    public void actionAfterUriAddedToBuffer() {}
 }

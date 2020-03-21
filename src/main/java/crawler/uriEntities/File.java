@@ -39,6 +39,9 @@ public class File implements URI {
     }
 
     @Override
+    public void actionAfterUriAddedToBuffer() {}
+
+    @Override
     public String toString() {
         return this.getUri();
     }

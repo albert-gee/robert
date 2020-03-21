@@ -8,8 +8,6 @@ import crawler.uriEntities.Http;
 import crawler.uriEntities.Mailto;
 import crawler.uriEntities.Tel;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -19,8 +17,21 @@ import java.util.TreeMap;
  */
 public class Crawler {
 
-    private static Buffer buffer;
-    private static String host; // must not contain protocol, e.g. "www.google.com" without "https://"
+    private static UriFactory   uriFactory;
+    private static String       hostProtocol;
+    private static String       host; // must not contain protocol, e.g. "www.google.com" without "https://"
+    private static Buffer       buffer;
+
+    public static void main(String... args) {
+        setHostProtocol("https");
+        setHost("hocbr.creativepace.com");
+        setUriFactory();
+        buffer = SimpleBuffer.create();
+        buffer.addUri(uriFactory.createUriObject(getHostProtocol() + "://" + getHost()));
+
+        printResult();
+
+    }
 
     /**
      * @return Baffer singleton
@@ -38,12 +49,25 @@ public class Crawler {
         return host;
     }
 
-    public static void main(String... args) {
+    /**
+     * @return host protocol
+     */
+    public static String getHostProtocol() {
+        return hostProtocol;
+    }
 
-        host = "messino.creativepace.com";
+    /**
+     * @return UriFactory singleton
+     */
+    public static UriFactory getUriFactory() {
+        return uriFactory;
+    }
 
-        buffer = SimpleBuffer.create("https://messino.creativepace.com");
-
+    /**
+     * Creates UriFactory instance and sets rules
+     */
+    private static void setUriFactory() {
+        uriFactory = UriFactory.getInstance();
         Map<String, Class<?>> rules = new HashMap<>();
         rules.put("tel",    Tel.class);
         rules.put("mailto", Mailto.class);
@@ -51,17 +75,63 @@ public class Crawler {
         rules.put("https",  Http.class);
         rules.put("file",   File.class);
 
-        Classifier classifier = null;
-        classifier = new Classifier(buffer, rules);
-        Map<String, Map<String, URI>> classifiedURIs = classifier.getClassifiedURIs();
 
-        System.out.println("***********");
-        Map<String, URI> webPages = classifiedURIs.get("https");
-        webPages.putAll(classifiedURIs.get("http"));
-        Map<String, URI> sorted = new TreeMap<>(webPages);
-        sorted.forEach((uri, uriObject) -> {
-            Http httpObject = (Http) uriObject;
-            System.out.println(httpObject.getAnalysis());
-        });
+        uriFactory.setRules(rules);
+    }
+
+    /**
+     * Sets hosts without protocol
+     * @param hostString - host string
+     */
+    private static void setHost(String hostString) {
+
+        if (hostString != null && hostString.trim().length() != 0) {
+            String hostWithoutProtocol = hostString;
+
+            // Gets scheme of URI, eg http or mailto
+            int firstOccurrenceOfSlashes = hostString.indexOf("://");
+
+            if (firstOccurrenceOfSlashes != -1) {
+                hostWithoutProtocol = hostString.substring(firstOccurrenceOfSlashes + 3);
+            }
+
+            host = hostWithoutProtocol;
+        } else {
+            throw new IllegalArgumentException("Empty host was provided");
+        }
+    }
+
+    /**
+     * Sets host protocol
+     * @param protocol - host protocol
+     */
+    private static void setHostProtocol(String protocol) {
+        Crawler.hostProtocol = protocol;
+    }
+
+    private static void printResult() {
+        // Print result
+        Classifier classifier = new Classifier();
+        Map<String, Map<String, URI>> schemes = classifier.getClassifiedURIs();
+
+        if (schemes != null) {
+            for (String schemeKey : schemes.keySet()) {
+                System.out.println("SCHEME " + schemeKey);
+
+                Map<String, URI> schemeUris = schemes.get(schemeKey);
+                Map<String, URI> sorted = new TreeMap<>(schemeUris);
+
+                for (String uriString : sorted.keySet()) {
+                    if (schemeUris.get(uriString) instanceof  Http) {
+                        Http http = (Http) schemeUris.get(uriString);
+                        System.out.println(http.getUri() + " " + http.getHttpStatusCode());
+                    } else {
+                        System.out.println(uriString);
+                    }
+                }
+            }
+        } else {
+            System.out.println("There are no URIs");
+        }
     }
 }

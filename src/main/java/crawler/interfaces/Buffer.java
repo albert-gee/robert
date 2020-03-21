@@ -1,6 +1,6 @@
 package crawler.interfaces;
 
-import java.util.List;
+import java.util.Map;
 
 /**
  * This interface describes a buffer where all links added to be analyzed.
@@ -12,10 +12,10 @@ public interface Buffer {
      * Adds new unique URI to HashMap
      * @param uris - unlimited number of URI objects
      */
-    void addUri(String... uris);
+    void addUri(URI... uris);
 
     /**
      * @return Set of unique URIs
      */
-    List<String> getURIs();
+    Map<String, URI> getURIs();
 }

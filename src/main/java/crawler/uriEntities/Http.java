@@ -1,7 +1,7 @@
 package crawler.uriEntities;
 
 import crawler.Crawler;
-import crawler.interfaces.Buffer;
+import crawler.SimpleBuffer;
 import crawler.interfaces.URI;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -43,18 +43,33 @@ public class Http implements URI {
 
                 if (this.isWebPage() && this.isInternal()) {
                     this.setDocument();
-
-                    // Adds child URIs to buffer
-                    Buffer buffer = Crawler.getBuffer();
-
-                    for (String uri : this.getPageLinks()) {
-                        buffer.addUri(uri);
-                    }
                 }
                 this.setAnalysis();
             }
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void actionAfterUriAddedToBuffer() {
+        // Adds child URIs to buffer
+        SimpleBuffer buffer = (SimpleBuffer) Crawler.getBuffer();
+
+        if (buffer.isUriInBuffer(this)) {
+
+            for (String uri : this.getPageLinks()) {
+                if (!isAbsolute(uri) && Crawler.getUriFactory().determineScheme(uri) == null) {
+                    if (uri.startsWith("/")) {
+                        uri = Crawler.getHostProtocol() + "://" + Crawler.getHost() + uri;
+                    } else {
+                        uri = this.getUri() + "/" + uri;
+                    }
+                }
+
+                buffer.addUri(Crawler.getUriFactory().createUriObject(uri));
+            }
+        } else {
+            System.out.println("You are trying to call the actionAfterUriAddedToBuffer() method but URI is still not in buffer");
         }
     }
 
@@ -191,7 +206,6 @@ public class Http implements URI {
         } else {
             sb.append(String.format("\tCode: %s", this.getHttpStatusCode()));
         }
-
         this.analysis = sb.toString();
     }
 
@@ -254,6 +268,20 @@ public class Http implements URI {
     }
 
     /**
+     * @return true if URL is absolute, false if relative
+     */
+    public boolean isAbsolute() {
+        return isAbsolute(this.getUri());
+    }
+
+    /**
+     * @return true if URL is absolute, false if relative
+     */
+    public boolean isAbsolute(String uriString) {
+        return uriString.startsWith("http://") || uriString.startsWith("https://");
+    }
+
+    /**
      * Opens a web page, gets all HTML elements with attribute [href], and fetches their values
      * @return HashSet of links found on provided page
      */
@@ -276,8 +304,6 @@ public class Http implements URI {
                 if (element.hasAttr("href")) {
                     String href = element.attr("href");
                     if (href != null && href.trim().length() > 0) links.add(href);
-                    System.out.println(href);
-
                 }
 
             }

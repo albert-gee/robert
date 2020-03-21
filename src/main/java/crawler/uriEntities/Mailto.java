@@ -54,4 +54,7 @@ public class Mailto implements URI {
     public int compareTo(URI urlLink) {
         return this.getUri().compareTo(urlLink.getUri());
     }
+
+    @Override
+    public void actionAfterUriAddedToBuffer() {}
 }

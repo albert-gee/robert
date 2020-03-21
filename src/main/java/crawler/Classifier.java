@@ -1,66 +1,23 @@
 package crawler;
 
-import crawler.uriEntities.InvalidURI;
 import crawler.interfaces.Buffer;
 import crawler.interfaces.URI;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
+
 /**
- * This class describes the web crawler.
- * It can fetch links recursively of a website any depth.
+ * Classifies URI objects from buffer according to their scheme
  */
 public class Classifier {
 
-    private Map<String, Class<?>>           rules; // Map key is scheme and value is rule class name
-    private Buffer                          buffer;
     private Map<String, Map<String, URI>>   classifiedURIs; // Map key is scheme and value is Map object where key is URI and value is URI object
 
-    /**
-     *
-     * @param buffer - buffer
-     * @param rules - HashMap, where key is scheme and value is class name
-     */
-    public Classifier(Buffer buffer, Map<String, Class<?>> rules) {
+    public Classifier() {
 
-        this.setBuffer(buffer);
-        this.setRules(rules);
         this.setClassifiedURIs();
 
         this.classify();
-    }
-
-    /**
-     * @return Buffer
-     */
-    public Buffer getBuffer() {
-        return this.buffer;
-    }
-    /**
-     * Sets buffer
-     * @param buffer - buffer
-     */
-    private void setBuffer(Buffer buffer) {
-        if (buffer != null) this.buffer = buffer;
-        else throw new IllegalArgumentException("Buffer was not provided");
-    }
-
-    /**
-     * Checks and sets rules
-     * @param rules - Map where key is name of scheme and value is name of class representing URI
-     */
-    private void setRules(Map<String, Class<?>> rules) {
-        if (rules != null) {
-            rules.forEach((scheme, className) -> {
-                if (scheme == null || scheme.trim().length() == 0 || className == null) {
-                    throw new IllegalArgumentException("Some of your rules are empty");
-                }
-            });
-
-            this.rules = rules;
-            this.rules.put(null, InvalidURI.class); // For invalid URIs
-        }
     }
 
     /**
@@ -68,10 +25,13 @@ public class Classifier {
      */
     private void setClassifiedURIs() {
         this.classifiedURIs = new HashMap<>();
+    }
 
-        this.rules.forEach((schema, className) -> {
-            this.classifiedURIs.put(schema, new HashMap<>());
-        });
+    /**
+     * @return Buffer
+     */
+    public Buffer getBuffer() {
+        return Crawler.getBuffer();
     }
 
     /**
@@ -79,75 +39,20 @@ public class Classifier {
      * Records results into {@link #classifiedURIs} instance variable
      */
     private void classify() {
+        if (this.getBuffer().getURIs() != null) {
 
-        if (this.buffer.getURIs() != null) {
+            LinkedHashMap<String, URI> linkedHashMap = (LinkedHashMap<String, URI>) this.getBuffer().getURIs();
 
-            // Loops through HashSet of URIs in buffer
-            for (int i = 0; i < this.getBuffer().getURIs().size(); i++) {
-                String uriString = this.getBuffer().getURIs().get(i);
-                // Creates URI object according to URI scheme and provided rules
-                String scheme = this.determineScheme(uriString);
-                URI uriObject = this.createUriObject(scheme, uriString);
+            linkedHashMap.forEach((uriString, uriObject) -> {
+                String scheme = Crawler.getUriFactory().determineScheme(uriObject.getUri());
 
                 this.addClassifiedUri(scheme, uriObject);
-            }
+            });
         }
-
-
     }
 
-    /**
-     * Determines scheme of provided URI
-     * @param uriString - URI
-     * @return scheme of provided URI or NULL
-     */
-    private String determineScheme(String uriString) {
 
-        String scheme = null;
 
-        if (uriString != null && uriString.trim().length() != 0) {
-            // Gets scheme of URI, eg http or mailto
-            int firstOccurrenceOfColon = uriString.indexOf(":");
-
-            String partOfUriBeforeColon = "";
-            if (firstOccurrenceOfColon != -1) {
-                partOfUriBeforeColon = uriString.substring(0, firstOccurrenceOfColon);
-            }
-
-            // Checks if there is a rule corresponding such URI
-            if (this.rules.containsKey(partOfUriBeforeColon)) {
-                scheme = partOfUriBeforeColon;
-            }
-        }
-        return scheme;
-    }
-
-    /**
-     * Factory method that creates a URI object of provided URI string
-     * @param uriString - URI string
-     * @return URI object
-     */
-    private URI createUriObject(String scheme, String uriString) {
-        URI uriObject = null;
-
-        try {
-
-            if (scheme != null && scheme.length() > 0 && uriString != null && uriString.length() > 0) {
-
-                Class<?> schemeClass = this.rules.get(scheme);
-                uriObject = (URI) schemeClass.getConstructor(String.class)
-                        .newInstance(uriString);
-
-            } else {
-                uriObject = new InvalidURI(uriString);
-            }
-
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException ex) {
-            ex.printStackTrace();
-        }
-        return uriObject;
-
-    }
 
     /**
      * Adds classified URI according to its scheme
@@ -156,16 +61,20 @@ public class Classifier {
      */
     private void addClassifiedUri(String scheme, URI uriObject) {
 
-        // Gets Map of all URIs with same scheme
-        Map<String, URI> schemeUris = this.classifiedURIs.get(scheme);
-
-        if (!schemeUris.containsKey(uriObject.getUri())) {
-            schemeUris.put(uriObject.getUri(), uriObject);
-
+        if (!this.classifiedURIs.containsKey(scheme)) {
+            Map<String, URI> uriMap = new HashMap<>();
+            uriMap.put(uriObject.getUri(), uriObject);
+            this.classifiedURIs.put(scheme, uriMap);
         } else {
-            System.out.println("Update" + uriObject);
+            // Gets Map of all URIs with same scheme
+            Map<String, URI> uriMap = this.classifiedURIs.get(scheme);
 
-            schemeUris.get(uriObject.getUri()).updateUri(uriObject);
+            if (uriMap.containsKey(uriObject.getUri())) {
+                URI existingUri = uriMap.get(uriObject.getUri());
+                existingUri.updateUri(uriObject);
+            } else {
+                uriMap.put(uriObject.getUri(), uriObject);
+            }
         }
     }
 

@@ -28,4 +28,9 @@ public interface URI extends Comparable<URI> {
      * @param uriObject - URI object
      */
     void updateUri(URI uriObject);
+
+    /**
+     * This method is supposed to be executed after object was added to buffer
+     */
+    void actionAfterUriAddedToBuffer();
 }
