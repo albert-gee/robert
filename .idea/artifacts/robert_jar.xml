@@ -1,0 +1,19 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="robert:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/robert_jar</output-path>
+    <root id="archive" name="robert.jar">
+      <element id="directory" name="META-INF">
+        <element id="file-copy" path="$PROJECT_DIR$/src/main/resources/META-INF/MANIFEST.MF" />
+      </element>
+      <element id="module-output" name="robert" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/thymeleaf/thymeleaf/3.0.11.RELEASE/thymeleaf-3.0.11.RELEASE.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/slf4j/slf4j-api/1.7.25/slf4j-api-1.7.25.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/unbescape/unbescape/1.1.6.RELEASE/unbescape-1.1.6.RELEASE.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/ognl/ognl/3.1.12/ognl-3.1.12.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/jsoup/jsoup/1.12.1/jsoup-1.12.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/oro/oro/2.0.8/oro-2.0.8.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/javassist/javassist/3.20.0-GA/javassist-3.20.0-GA.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/attoparser/attoparser/2.0.5.RELEASE/attoparser-2.0.5.RELEASE.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

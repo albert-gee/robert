@@ -1,79 +1,67 @@
 package crawler;
 
-import crawler.interfaces.Buffer;
-import crawler.interfaces.URI;
+import crawler.interfaces.BufferInterface;
+import crawler.interfaces.HandlerInterface;
+import crawler.interfaces.UriInterface;
+import crawler.uriRuleEntities.Http;
 
-import java.util.*;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.TreeMap;
 
 
 /**
  * Classifies URI objects from buffer according to their scheme
  */
-public class Classifier {
+public class Classifier implements HandlerInterface {
 
-    private Map<String, Map<String, URI>>   classifiedURIs; // Map key is scheme and value is Map object where key is URI and value is URI object
+    private Map<String, Map<String, UriInterface>>   schemes; // Map where key is scheme and value is Map object where key is URI and value is URI object
 
     public Classifier() {
-
-        this.setClassifiedURIs();
-
-        this.classify();
-    }
-
-    /**
-     * Sets Map of classified URIs
-     */
-    private void setClassifiedURIs() {
-        this.classifiedURIs = new HashMap<>();
-    }
-
-    /**
-     * @return Buffer
-     */
-    public Buffer getBuffer() {
-        return Crawler.getBuffer();
+        this.schemes = new HashMap<>();
     }
 
     /**
      * Loops through URIs in buffer and separates them according to scheme.
-     * Records results into {@link #classifiedURIs} instance variable
+     * Prints result.
+     * Records results into {@link #schemes} instance variable
      */
-    private void classify() {
-        if (this.getBuffer().getURIs() != null) {
+    public void handle(BufferInterface buffer) {
 
-            LinkedHashMap<String, URI> linkedHashMap = (LinkedHashMap<String, URI>) this.getBuffer().getURIs();
-
-            linkedHashMap.forEach((uriString, uriObject) -> {
-                String scheme = Crawler.getUriFactory().determineScheme(uriObject.getUri());
-
-                this.addClassifiedUri(scheme, uriObject);
-            });
+        if (buffer.getURIs() != null) {
+            buffer.getURIs().forEach((uriString, uriObject) -> this.addClassifiedUri(uriObject.getScheme(), uriObject));
+        } else {
+            throw new IllegalArgumentException("The buffer is empty");
         }
+
+        printResult();
     }
-
-
-
 
     /**
      * Adds classified URI according to its scheme
      * @param scheme - URI scheme
      * @param uriObject - URI object
      */
-    private void addClassifiedUri(String scheme, URI uriObject) {
+    private void addClassifiedUri(String scheme, UriInterface uriObject) {
 
-        if (!this.classifiedURIs.containsKey(scheme)) {
-            Map<String, URI> uriMap = new HashMap<>();
-            uriMap.put(uriObject.getUri(), uriObject);
-            this.classifiedURIs.put(scheme, uriMap);
+        // If there are no URIs belonging to such scheme, creates a new Map
+        if (!this.schemes.containsKey(scheme)) {
+            Map<String, UriInterface> schemeMap = new HashMap<>();
+            schemeMap.put(uriObject.getUri(), uriObject);
+            this.schemes.put(scheme, schemeMap);
+
+        // Gets Map of all URIs with same scheme
         } else {
-            // Gets Map of all URIs with same scheme
-            Map<String, URI> uriMap = this.classifiedURIs.get(scheme);
 
-            if (uriMap.containsKey(uriObject.getUri())) {
-                URI existingUri = uriMap.get(uriObject.getUri());
+            // If such URI already exists, updates it
+            if (this.schemes.get(scheme).containsKey(uriObject.getUri())) {
+                UriInterface existingUri = this.schemes.get(scheme).get(uriObject.getUri());
                 existingUri.updateUri(uriObject);
+
+            // Adds new URI
             } else {
-                uriMap.put(uriObject.getUri(), uriObject);
+                this.schemes.get(scheme).put(uriObject.getUri(), uriObject);
             }
         }
     }
@@ -81,7 +69,35 @@ public class Classifier {
     /**
      * @return Map of classified URIs, where the key is a scheme and the value is a Map of URIs
      */
-    public Map<String, Map<String, URI>> getClassifiedURIs() {
-        return this.classifiedURIs;
+    public Map<String, Map<String, UriInterface>> getClassifiedURIs() {
+        return this.schemes;
+    }
+
+    /**
+     * Prints classified URIs
+     */
+    private void printResult() {
+        if (this.getClassifiedURIs().size() == 0) System.out.println("There is nothing to handle");
+        else {
+            for (String scheme : this.getClassifiedURIs().keySet()) {
+                System.out.println("*****************");
+
+                if (scheme != null) {
+                    System.out.println(scheme.toUpperCase() + " URIs");
+                } else {
+                    System.out.println("Undefined scheme URIs");
+                }
+
+                Map<String, UriInterface> schemeUris = this.getClassifiedURIs().get(scheme);
+                TreeMap<String, UriInterface> sortedSchemeUris = new TreeMap<>(schemeUris);
+
+                for (String uriString : sortedSchemeUris.keySet()) {
+                    UriInterface uriObject = schemeUris.get(uriString);
+
+                    if (uriObject instanceof Http) System.out.println(((Http) uriObject).getAnalysis());
+                    else System.out.println(uriString);
+                }
+            }
+        }
     }
 }

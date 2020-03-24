@@ -1,137 +1,116 @@
 package crawler;
 
-import crawler.interfaces.Buffer;
-import crawler.interfaces.URI;
+import crawler.interfaces.BufferInterface;
+import crawler.interfaces.HandlerInterface;
+import crawler.interfaces.UriFactoryInterface;
+import crawler.interfaces.UriInterface;
+import crawler.uriRuleEntities.Http;
 
-import crawler.uriEntities.File;
-import crawler.uriEntities.Http;
-import crawler.uriEntities.Mailto;
-import crawler.uriEntities.Tel;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * This class describes a crawler that fetches all website URIs and analyzed them
+ * This class describes a crawler
  */
 public class Crawler {
 
-    private static UriFactory   uriFactory;
-    private static String       hostProtocol;
-    private static String       host; // must not contain protocol, e.g. "www.google.com" without "https://"
-    private static Buffer       buffer;
+    private BufferInterface         buffer;
+    private UriFactoryInterface     uriFactory;
+    private HandlerInterface        handler;
+    private Set<String>             hosts; // First URIs added to the buffer in Crawler class
 
-    public static void main(String... args) {
-        setHostProtocol("https");
-        setHost("hocbr.creativepace.com");
-        setUriFactory();
-        buffer = SimpleBuffer.create();
-        buffer.addUri(uriFactory.createUriObject(getHostProtocol() + "://" + getHost()));
 
-        printResult();
+    public Crawler(BufferInterface buffer, UriFactoryInterface uriFactory, HandlerInterface handler) {
+        // Sets UriFactory
+        if (uriFactory != null) this.uriFactory = uriFactory;
+        else throw new IllegalArgumentException("URI factory class was not provided");
 
+        // Sets Buffer
+        if (buffer != null) this.buffer = buffer;
+        else throw new IllegalArgumentException("Buffer was not provided");
+
+        // Sets Handler
+        if (handler != null) this.handler = handler;
+        else throw new IllegalArgumentException("Handler class was not provided");
+
+        // Sets hosts
+        this.hosts = new HashSet<>();
     }
 
     /**
-     * @return Baffer singleton
+     * @return buffer of URIs
      */
-    public static Buffer getBuffer() {
-        return buffer;
+    public BufferInterface getBuffer() {
+        return this.buffer;
     }
 
     /**
-     * Host of website to be analyzed.
-     * URLs belonging to another host won't be analyzed
-     * @return host
+     * @return factory object that creates URIs
      */
-    public static String getHost() {
-        return host;
+    public UriFactoryInterface getUriFactory() {
+        return this.uriFactory;
     }
 
     /**
-     * @return host protocol
+     * @return handler object that manipulates URIs from buffer
      */
-    public static String getHostProtocol() {
-        return hostProtocol;
+    public HandlerInterface getHandler() {
+        return this.handler;
     }
 
     /**
-     * @return UriFactory singleton
+     * @return Set of unique hosts
      */
-    public static UriFactory getUriFactory() {
-        return uriFactory;
+    public Set<String> getHosts() {
+        return this.hosts;
+    }
+
+
+    /**
+     * Manipulates with URIs from buffer
+     */
+    public void handle() {
+        this.getHandler().handle(this.getBuffer());
     }
 
     /**
-     * Creates UriFactory instance and sets rules
+     * This method can be called only ones
+     * @param uris
      */
-    private static void setUriFactory() {
-        uriFactory = UriFactory.getInstance();
-        Map<String, Class<?>> rules = new HashMap<>();
-        rules.put("tel",    Tel.class);
-        rules.put("mailto", Mailto.class);
-        rules.put("http",   Http.class);
-        rules.put("https",  Http.class);
-        rules.put("file",   File.class);
+    public void addUris(String... uris) {
 
+        if (this.getHosts().size() > 0) throw new IllegalArgumentException("You can add hosts only once");
 
-        uriFactory.setRules(rules);
-    }
+        if (uris.length > 0) {
 
-    /**
-     * Sets hosts without protocol
-     * @param hostString - host string
-     */
-    private static void setHost(String hostString) {
+            this.getBuffer().setCrawler(this);
 
-        if (hostString != null && hostString.trim().length() != 0) {
-            String hostWithoutProtocol = hostString;
+            for (String uri : uris) {
+                if (uri != null && uri.trim().length() > 0) {
+                    UriInterface uriObject = this.getUriFactory().create(uri.trim(), null);
+                    this.getBuffer().addUri(uriObject);
 
-            // Gets scheme of URI, eg http or mailto
-            int firstOccurrenceOfSlashes = hostString.indexOf("://");
-
-            if (firstOccurrenceOfSlashes != -1) {
-                hostWithoutProtocol = hostString.substring(firstOccurrenceOfSlashes + 3);
-            }
-
-            host = hostWithoutProtocol;
-        } else {
-            throw new IllegalArgumentException("Empty host was provided");
-        }
-    }
-
-    /**
-     * Sets host protocol
-     * @param protocol - host protocol
-     */
-    private static void setHostProtocol(String protocol) {
-        Crawler.hostProtocol = protocol;
-    }
-
-    private static void printResult() {
-        // Print result
-        Classifier classifier = new Classifier();
-        Map<String, Map<String, URI>> schemes = classifier.getClassifiedURIs();
-
-        if (schemes != null) {
-            for (String schemeKey : schemes.keySet()) {
-                System.out.println("SCHEME " + schemeKey);
-
-                Map<String, URI> schemeUris = schemes.get(schemeKey);
-                Map<String, URI> sorted = new TreeMap<>(schemeUris);
-
-                for (String uriString : sorted.keySet()) {
-                    if (schemeUris.get(uriString) instanceof  Http) {
-                        Http http = (Http) schemeUris.get(uriString);
-                        System.out.println(http.getUri() + " " + http.getHttpStatusCode());
+                    // If provided URI is URL add it to set of hosts
+                    if (uriObject.getScheme().equals("https") || uriObject.getScheme().equals("http")) {
+                        Http httpObject = (Http) uriObject;
+                        this.getHosts().add(httpObject.getUri().trim());
+                        try {
+                            httpObject.setDocument();
+                            httpObject.parseWebPageLinks(this);
+                        } catch (IOException ex) {
+                            System.out.println(ex.getMessage());
+                        }
                     } else {
-                        System.out.println(uriString);
+                        System.out.println("Invalid host was not added: " + uriObject.getUri() + " Invalid scheme is " + uriObject.getScheme());
                     }
+
+                } else {
+                    throw new IllegalArgumentException("Attempt to add empty URI to buffer");
                 }
             }
         } else {
-            System.out.println("There are no URIs");
+            throw new IllegalArgumentException("URIs were not provided");
         }
     }
 }
