@@ -1,10 +1,10 @@
-package crawler;
+package io.robort.crawler;
 
-import crawler.interfaces.BufferInterface;
-import crawler.interfaces.HandlerInterface;
-import crawler.interfaces.UriFactoryInterface;
-import crawler.interfaces.UriInterface;
-import crawler.uriRuleEntities.Http;
+import io.robort.crawler.interfaces.BufferInterface;
+import io.robort.crawler.interfaces.HandlerInterface;
+import io.robort.crawler.interfaces.UriFactoryInterface;
+import io.robort.crawler.interfaces.UriInterface;
+import io.robort.crawler.uriRuleEntities.Http;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -15,10 +15,10 @@ import java.util.Set;
  */
 public class Crawler {
 
-    private BufferInterface         buffer;
-    private UriFactoryInterface     uriFactory;
-    private HandlerInterface        handler;
-    private Set<String>             hosts; // First URIs added to the buffer in Crawler class
+    private final BufferInterface       buffer;
+    private final UriFactoryInterface   uriFactory;
+    private final HandlerInterface      handler;
+    private final Set<String>           hosts; // First URIs added to the buffer in Crawler class
 
 
     public Crawler(BufferInterface buffer, UriFactoryInterface uriFactory, HandlerInterface handler) {

@@ -1,8 +1,8 @@
-package crawler;
+package io.robort.crawler;
 
-import crawler.interfaces.UriFactoryInterface;
-import crawler.interfaces.UriInterface;
-import crawler.uriRuleEntities.UnknownUri;
+import io.robort.crawler.interfaces.UriFactoryInterface;
+import io.robort.crawler.interfaces.UriInterface;
+import io.robort.crawler.uriRuleEntities.UnknownUri;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
@@ -12,7 +12,7 @@ import java.util.Map;
  */
 public class UriFactory implements UriFactoryInterface {
 
-    private Map<String, Class<?>> rules; // Map key is scheme and value is rule class implementing UriInterface
+    private final Map<String, Class<?>> rules; // Map key is scheme and value is rule class implementing UriInterface
 
     public UriFactory(Map<String, Class<?>> rules) {
         if (rules != null) {

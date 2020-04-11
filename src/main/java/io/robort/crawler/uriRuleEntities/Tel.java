@@ -1,7 +1,7 @@
-package crawler.uriRuleEntities;
+package io.robort.crawler.uriRuleEntities;
 
-import crawler.Crawler;
-import crawler.interfaces.UriInterface;
+import io.robort.crawler.Crawler;
+import io.robort.crawler.interfaces.UriInterface;
 
 import java.util.HashSet;
 import java.util.Set;

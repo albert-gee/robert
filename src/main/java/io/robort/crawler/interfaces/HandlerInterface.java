@@ -1,4 +1,4 @@
-package crawler.interfaces;
+package io.robort.crawler.interfaces;
 
 public interface HandlerInterface {
 

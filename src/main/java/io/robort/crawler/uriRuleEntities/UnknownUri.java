@@ -1,20 +1,21 @@
-package crawler.uriRuleEntities;
+package io.robort.crawler.uriRuleEntities;
 
-import crawler.Crawler;
-import crawler.interfaces.UriInterface;
+import io.robort.crawler.Crawler;
+import io.robort.crawler.interfaces.UriInterface;
 
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * This class describes a file URI
+ * This class describes a URI with unknown or empty scheme or empty URI
  */
-public class File implements UriInterface {
+public class UnknownUri implements UriInterface {
+
     private String              scheme;
     private String              uri;
     private Set<UriInterface>   parents;
 
-    public File(String scheme, String uriString, UriInterface parent) {
+    public UnknownUri(String scheme, String uriString, UriInterface parent) {
         this.setScheme(scheme);
         this.setUri(uriString);
         this.parents = new HashSet<>();
@@ -39,13 +40,12 @@ public class File implements UriInterface {
 
     @Override
     public void setScheme(String scheme) {
-        if (scheme == null) throw new IllegalArgumentException("File scheme is null");
-        this.scheme = scheme.trim();
+        this.scheme = scheme;
     }
 
     @Override
     public void setUri(String uriString) {
-        if (uriString == null) throw new IllegalArgumentException("File URI is null");
+        if (uriString == null) throw new IllegalArgumentException("Unknown URI is null");
         this.uri = uriString.trim();
     }
 
@@ -60,7 +60,7 @@ public class File implements UriInterface {
 
     @Override
     public void actionAfterUriAddedToBuffer(Crawler crawler) {
-        System.out.println("New File URI has been added to the buffer: " + this.getUri());
+        System.out.println("New unknown URI has been added to the buffer: " + this.getUri());
     }
 
 

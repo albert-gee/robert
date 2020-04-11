@@ -1,13 +1,12 @@
-package crawler;
+package io.robort.crawler;
 
-import crawler.interfaces.BufferInterface;
-import crawler.interfaces.HandlerInterface;
-import crawler.interfaces.UriInterface;
-import crawler.uriRuleEntities.Http;
+import io.robort.crawler.interfaces.BufferInterface;
+import io.robort.crawler.interfaces.HandlerInterface;
+import io.robort.crawler.interfaces.UriInterface;
+import io.robort.crawler.uriRuleEntities.Http;
 
 import java.util.Map;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.TreeMap;
 
 

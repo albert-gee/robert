@@ -1,6 +1,6 @@
-package crawler.interfaces;
+package io.robort.crawler.interfaces;
 
-import crawler.Crawler;
+import io.robort.crawler.Crawler;
 
 import java.util.Map;
 

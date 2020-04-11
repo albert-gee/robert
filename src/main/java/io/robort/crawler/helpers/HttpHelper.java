@@ -1,6 +1,6 @@
-package crawler.helpers;
+package io.robort.crawler.helpers;
 
-import crawler.Crawler;
+import io.robort.crawler.Crawler;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;

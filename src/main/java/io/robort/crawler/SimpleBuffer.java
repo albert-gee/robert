@@ -1,7 +1,7 @@
-package crawler;
+package io.robort.crawler;
 
-import crawler.interfaces.BufferInterface;
-import crawler.interfaces.UriInterface;
+import io.robort.crawler.interfaces.BufferInterface;
+import io.robort.crawler.interfaces.UriInterface;
 
 import java.util.HashMap;
 import java.util.Map;

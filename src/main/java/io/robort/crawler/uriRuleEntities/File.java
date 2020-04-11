@@ -1,22 +1,20 @@
-package crawler.uriRuleEntities;
+package io.robort.crawler.uriRuleEntities;
 
-import crawler.Crawler;
-import crawler.interfaces.UriInterface;
+import io.robort.crawler.interfaces.UriInterface;
+import io.robort.crawler.Crawler;
 
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * This class describes an email URI,
- * e.g. <a href="mailto:darth.vader@tatooine.com">...</a>
+ * This class describes a file URI
  */
-public class Mailto implements UriInterface {
-
+public class File implements UriInterface {
     private String              scheme;
     private String              uri;
     private Set<UriInterface>   parents;
 
-    public Mailto(String scheme, String uriString, UriInterface parent) {
+    public File(String scheme, String uriString, UriInterface parent) {
         this.setScheme(scheme);
         this.setUri(uriString);
         this.parents = new HashSet<>();
@@ -41,13 +39,13 @@ public class Mailto implements UriInterface {
 
     @Override
     public void setScheme(String scheme) {
-        if (scheme == null) throw new IllegalArgumentException("Mail scheme is null");
+        if (scheme == null) throw new IllegalArgumentException("File scheme is null");
         this.scheme = scheme.trim();
     }
 
     @Override
     public void setUri(String uriString) {
-        if (uriString == null) throw new IllegalArgumentException("Mail URI is null");
+        if (uriString == null) throw new IllegalArgumentException("File URI is null");
         this.uri = uriString.trim();
     }
 
@@ -62,8 +60,9 @@ public class Mailto implements UriInterface {
 
     @Override
     public void actionAfterUriAddedToBuffer(Crawler crawler) {
-        System.out.println("New Mail URI has been added to the buffer: " + this.getUri());
+        System.out.println("New File URI has been added to the buffer: " + this.getUri());
     }
+
 
     @Override
     public String toString() {

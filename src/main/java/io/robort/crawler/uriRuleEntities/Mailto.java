@@ -1,21 +1,22 @@
-package crawler.uriRuleEntities;
+package io.robort.crawler.uriRuleEntities;
 
-import crawler.Crawler;
-import crawler.interfaces.UriInterface;
+import io.robort.crawler.Crawler;
+import io.robort.crawler.interfaces.UriInterface;
 
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * This class describes a URI with unknown or empty scheme or empty URI
+ * This class describes an email URI,
+ * e.g. <a href="mailto:darth.vader@tatooine.com">...</a>
  */
-public class UnknownUri implements UriInterface {
+public class Mailto implements UriInterface {
 
     private String              scheme;
     private String              uri;
     private Set<UriInterface>   parents;
 
-    public UnknownUri(String scheme, String uriString, UriInterface parent) {
+    public Mailto(String scheme, String uriString, UriInterface parent) {
         this.setScheme(scheme);
         this.setUri(uriString);
         this.parents = new HashSet<>();
@@ -40,12 +41,13 @@ public class UnknownUri implements UriInterface {
 
     @Override
     public void setScheme(String scheme) {
-        this.scheme = scheme;
+        if (scheme == null) throw new IllegalArgumentException("Mail scheme is null");
+        this.scheme = scheme.trim();
     }
 
     @Override
     public void setUri(String uriString) {
-        if (uriString == null) throw new IllegalArgumentException("Unknown URI is null");
+        if (uriString == null) throw new IllegalArgumentException("Mail URI is null");
         this.uri = uriString.trim();
     }
 
@@ -60,9 +62,8 @@ public class UnknownUri implements UriInterface {
 
     @Override
     public void actionAfterUriAddedToBuffer(Crawler crawler) {
-        System.out.println("New unknown URI has been added to the buffer: " + this.getUri());
+        System.out.println("New Mail URI has been added to the buffer: " + this.getUri());
     }
-
 
     @Override
     public String toString() {

@@ -1,12 +1,9 @@
-import crawler.Classifier;
-import crawler.Crawler;
-import crawler.SimpleBuffer;
-import crawler.UriFactory;
-import crawler.interfaces.BufferInterface;
-import crawler.interfaces.HandlerInterface;
-import crawler.interfaces.UriFactoryInterface;
-import crawler.interfaces.UriInterface;
-import crawler.uriRuleEntities.*;
+package io.robort.crawler;
+
+import io.robort.crawler.interfaces.BufferInterface;
+import io.robort.crawler.interfaces.HandlerInterface;
+import io.robort.crawler.interfaces.UriFactoryInterface;
+import io.robort.crawler.uriRuleEntities.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,7 +30,7 @@ public class Driver {
 
         // Create Crawler and add Buffer, UriFactory, and Handler
         Crawler crawler = new Crawler(buffer, uriFactory, handler);
-        crawler.addUris("https://hocbr.creativepace.com");
+        crawler.addUris("https://www.acamp.ca/");
 
         // Handle URIs
         crawler.handle();

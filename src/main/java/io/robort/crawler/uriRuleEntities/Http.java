@@ -1,8 +1,8 @@
-package crawler.uriRuleEntities;
+package io.robort.crawler.uriRuleEntities;
 
-import crawler.Crawler;
-import crawler.helpers.HttpHelper;
-import crawler.interfaces.UriInterface;
+import io.robort.crawler.Crawler;
+import io.robort.crawler.helpers.HttpHelper;
+import io.robort.crawler.interfaces.UriInterface;
 
 import org.jsoup.nodes.Document;
 
