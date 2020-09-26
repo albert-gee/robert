@@ -8,5 +8,5 @@ public interface URI {
 
     void process(Buffer buffer);
 
-    void update();
+    void update(String parent);
 }
