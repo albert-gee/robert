@@ -120,4 +120,34 @@ class URLHelperTest {
         String actualMessage = exception.getMessage();
         assertEquals(expectedMessage, actualMessage);
     }
+
+    @Test
+    void isAbsoluteHttpSuccess() {
+        assertTrue(URLHelper.isAbsolute("http://www.site.com"));
+    }
+
+    @Test
+    void isAbsoluteHttpsSuccess() {
+        assertTrue(URLHelper.isAbsolute("https://www.site.com"));
+    }
+
+    @Test
+    void isAbsoluteWrongSchemeFail() {
+        assertFalse(URLHelper.isAbsolute("ldap://www.site.com"));
+    }
+
+    @Test
+    void isAbsoluteWithoutSchemeFail() {
+        assertFalse(URLHelper.isAbsolute("www.site.com"));
+    }
+
+    @Test
+    void isAbsoluteWithoutSchemeWithTwoSlashesFail() {
+        assertFalse(URLHelper.isAbsolute("//www.site.com"));
+    }
+
+    @Test
+    void isAbsoluteWithoutSchemeWithOneSlashesFail() {
+        assertFalse(URLHelper.isAbsolute("/www.site.com"));
+    }
 }

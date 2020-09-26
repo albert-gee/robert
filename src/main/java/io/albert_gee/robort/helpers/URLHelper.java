@@ -62,4 +62,13 @@ public class URLHelper {
             return null;
         }
     }
+
+    /**
+     * Checks if provided url is absolute
+     * @param url URL
+     * @return boolean
+     */
+    public static boolean isAbsolute(String url) {
+        return url != null && (url.startsWith("http://") || url.startsWith("https://"));
+    }
 }
