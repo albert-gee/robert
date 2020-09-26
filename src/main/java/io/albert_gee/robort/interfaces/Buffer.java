@@ -4,9 +4,9 @@ import java.util.List;
 
 public interface Buffer {
 
-    void add(String uri);
+    void add(String uri, String parent);
 
-    void addAll(List<String> uris);
+    void addHosts(List<String> uris);
 
     String next();
 
