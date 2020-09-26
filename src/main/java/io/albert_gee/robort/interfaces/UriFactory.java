@@ -9,5 +9,5 @@ public interface UriFactory {
 
     Map<String, Class<?>> getRules();
 
-    URI create(String uri) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException;
+    URI create(String uri, String parent) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException;
 }
