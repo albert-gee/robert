@@ -1,6 +1,7 @@
 package io.albert_gee.robort;
 
 import io.albert_gee.robort.entities.*;
+import io.albert_gee.robort.interfaces.URI;
 import io.albert_gee.robort.utils.SimpleUriFactory;
 import io.albert_gee.robort.interfaces.Buffer;
 import io.albert_gee.robort.interfaces.UriFactory;
@@ -10,6 +11,7 @@ import io.albert_gee.robort.utils.WebPagesBuffer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 /**
@@ -19,7 +21,23 @@ public class Driver {
 
     public static void main(String[] args) {
         String[] uris = promptURIs();
-        scan(uris);
+        Map<String, URI> uriMap = scan(uris);
+
+        System.out.println("URIs found");
+        for (Map.Entry<String, URI> entry : uriMap.entrySet()) {
+            String uri = entry.getKey();
+            URI instance = entry.getValue();
+
+            System.out.println(uri);
+
+            if (instance instanceof Http) {
+                Http httpInstance = (Http) instance;
+                for (String parent : httpInstance.getFoundOn()) {
+                    System.out.println(" - Found on " + parent);
+                }
+            }
+
+        }
     }
 
     private static String[] promptURIs() {
@@ -39,24 +57,26 @@ public class Driver {
     }
 
     /**
-     *
-     * @param uri
+     * Scan provided hosts
+     * @param uris URIs
      */
-    private static void scan(String... uri) {
+    private static Map<String, URI> scan(String... uris) {
         System.out.println("Start scanning");
 
         UriFactory uriFactory = initUriFactory();
         Buffer buffer = initBuffer(uriFactory);
 
         Crawler crawler = new Crawler(buffer);
-        crawler.handle(uri);
+        crawler.handle(uris);
 
         WebPagesBuffer webPagesBuffer = WebPagesBuffer.getInstance();
-        System.out.println("*************Printing web pages");
+        System.out.println("************* Printing web pages *************");
         for (HtmlDocument htmlDocument : webPagesBuffer.getPages()) {
             System.out.println(htmlDocument.getUri() + " (" + htmlDocument.getStatusCode() + ") - " + htmlDocument.getLinks().size() + " links");
         }
 
+        SimpleBuffer simpleBuffer = (SimpleBuffer) buffer;
+        return simpleBuffer.getUriInstances();
     }
 
     /**
