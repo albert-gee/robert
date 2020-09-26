@@ -33,28 +33,38 @@ public class SimpleBuffer implements Buffer {
      * Add a URI to the buffer
      * @param uri URI
      */
-    public void add(String uri) {
-        if (uri == null) {
+    public void add(String uri, String parent) {
+        if (uri == null || uri.trim().isEmpty()) {
             throw new IllegalArgumentException("URI can't be null");
         }
 
+        // URI is not in the buffer yet
         if (!uris.contains(uri)) {
             uris.add(uri);
 
-            URI uriInstance;
-            try {
-                uriInstance = uriFactory.create(uri);
-                uriInstance = (uriInstance == null) ? new UnknownUri(uri) : uriInstance;
-            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
-                uriInstance = new UnknownUri(uri);
-            }
-
-            uriInstances.put(uriInstance.getScheme(), uriInstance);
-
+            URI uriInstance = createUriInstance(uri, parent);
+            uriInstances.put(uri, uriInstance);
             uriInstance.process(this);
-        } else {
-//            uriInstances.get(uri).update();
         }
+        // URI is already in the buffer
+        else {
+            uriInstances.get(uri).update(parent);
+        }
+    }
+
+    private URI createUriInstance(String uri, String parent) {
+        URI uriInstance;
+        try {
+            uriInstance = uriFactory.create(uri, parent);
+            uriInstance = (uriInstance == null) ? new UnknownUri(uri, parent) : uriInstance;
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
+            uriInstance = new UnknownUri(uri, parent);
+        }
+        return uriInstance;
+    }
+
+    public Map<String, URI> getUriInstances() {
+        return uriInstances;
     }
 
     public boolean isInHosts(String uri) {
@@ -66,9 +76,9 @@ public class SimpleBuffer implements Buffer {
      * Add a URI to the buffer
      * @param uris URI
      */
-    public void addAll(List<String> uris) {
+    public void addHosts(List<String> uris) {
         for (String uri : uris) {
-            add(uri);
+            add(uri, null);
         }
     }
 
