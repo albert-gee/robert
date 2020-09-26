@@ -8,16 +8,23 @@ import io.albert_gee.robort.utils.HttpClient;
 import io.albert_gee.robort.utils.WebPagesBuffer;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Http implements URI {
 
     private String url;
-    private String host;
+    private String parent;
+    private ArrayList<String> foundOn;
 
-    public Http(String url, String host) {
+    public Http(String url, String parent) {
         setUrl(url);
-        setHost(host);
+        setParent(parent);
+        foundOn = new ArrayList<>();
+
+        if (parent != null) {
+            foundOn.add(parent);
+        }
     }
 
     /**
@@ -28,18 +35,23 @@ public class Http implements URI {
         if (url == null || url.trim().isEmpty()) {
             throw new IllegalArgumentException("HTTP URI must be not empty");
         } else {
-            this.url = URLHelper.makeUrlAbsolute(url, this.getHost());
+            if (URLHelper.isAbsolute(url)) {
+                this.url = url;
+            } else {
+                if (this.getParent() == null) {
+                    throw new IllegalArgumentException("Relative URL without parent can't be added");
+                }
+                this.url = URLHelper.makeUrlAbsolute(url, this.getParent());
+            }
         }
     }
 
     /**
-     * Set host
-     * @param host Host
+     * Set parent
+     * @param parent Parent
      */
-    private void setHost(String host) {
-        if (host == null || host.trim().length() == 0) {
-            throw new IllegalArgumentException("Host can not be empty");
-        }
+    private void setParent(String parent) {
+        this.parent = parent;
     }
 
     /**
@@ -54,8 +66,12 @@ public class Http implements URI {
      * Get host
      * @return URI
      */
-    public String getHost() {
-        return host;
+    public String getParent() {
+        return parent;
+    }
+
+    public ArrayList<String> getFoundOn() {
+        return foundOn;
     }
 
     /**
@@ -78,17 +94,23 @@ public class Http implements URI {
             if (client.getStatusCode() >= 300 && client.getStatusCode() <= 399) {
                 return;
             }
-            if (client.getStatusCode() == 200) {
+            if (client.getStatusCode() >= 200 && client.getStatusCode() <= 299) {
                 Document document = client.getDocument();
 
-                // Parse only internal html documents
-                if (document instanceof HtmlDocument && buffer.isInHosts(this.getHost())) {
+                // Parse only internal html documents or hosts (without parent)
+                if (
+                        document instanceof HtmlDocument &&
+                        (this.getParent() == null || buffer.isInHosts(URLHelper.parseHost(getParent())))
+                ) {
                     WebPagesBuffer webPagesBuffer = WebPagesBuffer.getInstance();
                     webPagesBuffer.add((HtmlDocument) document);
 
                     HtmlDocument htmlDocument = (HtmlDocument) document;
                     List<String> urls =  htmlDocument.getUrls();
-                    buffer.addAll(urls);
+
+                    for (String url : urls) {
+                        buffer.add(URLHelper.makeUrlAbsolute(url, getUri()), getUri());
+                    }
                 }
             }
         } catch (IOException e) {
@@ -97,7 +119,7 @@ public class Http implements URI {
     }
 
     @Override
-    public void update() {
-
+    public void update(String parent) {
+        foundOn.add(parent);
     }
 }
