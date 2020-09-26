@@ -14,7 +14,7 @@ public class Crawler {
 
     public void handle(String... uris) {
         buffer.setHosts(uris);
-        buffer.addAll(Arrays.asList(uris));
+        buffer.addHosts(Arrays.asList(uris));
 
         while(buffer.hasNext()) {
             buffer.next();
