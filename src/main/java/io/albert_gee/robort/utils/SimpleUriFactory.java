@@ -31,10 +31,10 @@ public class SimpleUriFactory implements UriFactory {
      * @param uri - URI string
      * @return URI object
      */
-    public URI create(String uri) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    public URI create(String uri, String parent) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         String scheme = URIHelper.parseScheme(uri);
         Class<?> schemeClass = rules.get(scheme);
 
-        return (schemeClass != null) ? (URI) schemeClass.getConstructor(String.class).newInstance(uri) : null;
+        return (schemeClass != null) ? (URI) schemeClass.getConstructor(String.class, String.class).newInstance(uri, parent) : null;
     }
 }
