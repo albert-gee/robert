@@ -5,17 +5,31 @@ import io.albert_gee.robort.interfaces.URI;
 
 public class Tel implements URI {
     private final String uri;
+    private final String parent;
 
-    public Tel(String uri) {
+    public Tel(String uri, String parent) {
         if (uri == null || uri.trim().isEmpty()) {
-            throw new IllegalArgumentException("Tel URI must be not empty");
+            throw new IllegalArgumentException("Mailto URI must be not empty");
         } else {
             this.uri = uri;
+            this.parent = parent;
         }
     }
 
+    /**
+     * Get URI
+     * @return URI
+     */
     public String getUri() {
         return uri;
+    }
+
+    /**
+     * Get host
+     * @return URI
+     */
+    public String getParent() {
+        return parent;
     }
 
     /**
@@ -30,7 +44,6 @@ public class Tel implements URI {
     }
 
     @Override
-    public void update() {
-
+    public void update(String parent) {
     }
 }
